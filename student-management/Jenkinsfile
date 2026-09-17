@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+    tools {
+        // Ensure you have a Maven tool configured in Jenkins named 'Maven'
+        maven 'Maven' 
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Build and Test') {
+            steps {
+                bat 'mvn clean package'
+            }
+        }
+        stage('Docker Build') {
+            steps {
+                bat 'docker build -t student-management-app .'
+            }
+        }
+        stage('Docker Deploy') {
+            steps {
+                // Stop and remove the previous pipeline container if it exists, then deploy on port 8082
+                bat 'docker rm -f student-app-pipeline || exit 0'
+                bat 'docker run -d -p 8082:8080 --name student-app-pipeline student-management-app'
+            }
+        }
+    }
+}
